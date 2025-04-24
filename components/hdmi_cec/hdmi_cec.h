@@ -74,7 +74,8 @@ template<typename... Ts> class HdmiCecSendAction : public Action<Ts...>, public 
     this->static_ = true;
   }
   void set_source(uint8_t source) { this->source_ = source; }
-  void set_destination(uint8_t destination) { this->destination_ = destination; }
+  //void set_destination(uint8_t destination) { this->destination_ = destination; }
+  TEMPLATABLE_VALUE(uint8_t, destination)
 
   void play(Ts... x) override {
     auto source = this->source_.has_value() ? *this->source_ : this->parent_->address_;
