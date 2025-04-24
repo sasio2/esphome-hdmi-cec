@@ -67,7 +67,7 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(): cv.use_id(HdmiCecComponent),
             cv.Optional(CONF_SOURCE): cv.int_range(min=0, max=15),
-            cv.Required(CONF_DESTINATION): cv.int_range(min=0, max=15),
+            cv.Required(CONF_DESTINATION): cv.templatable(cv.int_range(min=0, max=15)),
             cv.Required(CONF_DATA): cv.templatable(validate_raw_data),
         },
         key=CONF_DATA,
