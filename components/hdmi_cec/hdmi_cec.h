@@ -79,11 +79,12 @@ template<typename... Ts> class HdmiCecSendAction : public Action<Ts...>, public 
 
   void play(Ts... x) override {
     auto source = this->source_.has_value() ? *this->source_ : this->parent_->address_;
+    auto destination_address = destination_.value(x...);
     if (this->static_) {
-      this->parent_->send_data(source, this->destination_, this->data_static_);
+      this->parent_->send_data(source, destination_address, this->data_static_);
     } else {
       auto val = this->data_func_(x...);
-      this->parent_->send_data(source, this->destination_, val);
+      this->parent_->send_data(source, destination_address, val);
     }
   }
 
