@@ -90,7 +90,7 @@ template<typename... Ts> class HdmiCecSendAction : public Action<Ts...>, public 
 
  protected:
   optional<uint8_t> source_{};
-  uint8_t destination_;
+  //uint8_t destination_;
   bool static_{false};
   std::function<std::vector<uint8_t>(Ts...)> data_func_{};
   std::vector<uint8_t> data_static_{};
