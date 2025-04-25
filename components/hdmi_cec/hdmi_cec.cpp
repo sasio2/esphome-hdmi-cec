@@ -126,7 +126,7 @@ void HdmiCec::setup() {
 }
 
 void HdmiCec::dump_config() {
-  ESP_LOGCONFIG(TAG, "HDMI-CEC:");
+  ESP_LOGCONFIG(TAG, "HDMI-CEC (sasio2):");
   ESP_LOGCONFIG(TAG, "  address: %d", this->address_);
   LOG_PIN("  Pin: ", this->pin_);
 }
