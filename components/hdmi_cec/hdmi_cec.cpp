@@ -64,7 +64,6 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
   ESP_LOGD(TAG, "RX: (%d->%d) %02X:%s", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
            debug_message);
 
-  bool handled = false;
   uint8_t opcode = buffer[0];
   for (auto *trigger : this->triggers_) {
     if ((!trigger->opcode_.has_value() || (*trigger->opcode_ == opcode)) &&
@@ -74,39 +73,11 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
          (count == trigger->data_->size() && std::equal(trigger->data_->begin(), trigger->data_->end(), buffer)))) {
       auto data_vec = std::vector<uint8_t>(buffer, buffer + count);
       trigger->trigger(source, destination, data_vec);
-      handled = true;
     }
-  }
-
-  // Handling the physical address response in code instead of yaml since I think it always
-  // needs to happen for other devices to be able to talk to this device.
-  if (!handled && opcode == 0x83 && destination == address_) {
-    ESP_LOGD(TAG, "Internal physical address report");
-    
-    // Report physical address
-    unsigned char buf[4] = {0x84, (unsigned char) (physical_address_ >> 8), (unsigned char) (physical_address_ & 0xff),
-                            address_};
-    this->send_data_internal_(this->address_, 0xF, buf, 4);
   }
 }
 
 void HdmiCec::OnTransmitComplete(unsigned char *buffer, int count, bool ack) {
-  return;
-  
-  if (count < 2)
-    return;
-  
-  auto source = (buffer[0] & 0xF0) >> 4;
-  auto destination = (buffer[0] & 0x0F);
-
-  // Pop the source/destination byte from buffer
-  buffer = &buffer[1];
-  count = count - 1;
-
-  char debug_message[HDMI_CEC_MAX_DATA_LENGTH * 3];
-  message_to_debug_string(debug_message, buffer, count);
-  ESP_LOGD(TAG, "ACK: (%d->%d) %02X:%s [%s]", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
-           debug_message, ack ? "success" : "fail");
 }
 
 void IRAM_ATTR HOT HdmiCec::pin_interrupt(HdmiCec *arg) {
@@ -119,7 +90,7 @@ void HdmiCec::setup() {
   this->high_freq_.start();
 
   ESP_LOGCONFIG(TAG, "Setting up HDMI-CEC...");
-  this->Initialize(this->physical_address_, CEC_Device::CDT_PLAYBACK_DEVICE, true);
+  this->Initialize(0x4000, CEC_Device::CDT_PLAYBACK_DEVICE, true);
 
   // This isn't quite enough to allow us to get rid of the HighFrequencyLoopRequester.
   // There's probably something that needs to wait a certain amount of time after
@@ -146,7 +117,7 @@ void HdmiCec::send_data_internal_(uint8_t source, uint8_t destination, unsigned 
   ESP_LOGD(TAG, "TX: (%d->%d) %02X:%s", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
            debug_message);
 
-  this->Transmit(source, destination, buffer, count);
+  this->TransmitFrame(source, destination, buffer, count);
 }
 
 void HdmiCec::add_trigger(HdmiCecTrigger *trigger) { this->triggers_.push_back(trigger); };
