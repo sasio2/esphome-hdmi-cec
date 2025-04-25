@@ -64,6 +64,8 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
   ESP_LOGD(TAG, "RX: (%d->%d) %02X:%s", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
            debug_message);
 
+  bool handled = false;
+
   uint8_t opcode = buffer[0];
   for (auto *trigger : this->triggers_) {
     if ((!trigger->opcode_.has_value() || (*trigger->opcode_ == opcode)) &&
@@ -73,7 +75,19 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
          (count == trigger->data_->size() && std::equal(trigger->data_->begin(), trigger->data_->end(), buffer)))) {
       auto data_vec = std::vector<uint8_t>(buffer, buffer + count);
       trigger->trigger(source, destination, data_vec);
+      handled = true;
     }
+  }
+
+  // Handling the physical address response in code instead of yaml since I think it always
+  // needs to happen for other devices to be able to talk to this device.
+  if (!handled && opcode == 0x83 && destination == address_) {
+    ESP_LOGD(TAG, "Internal physical address report");
+
+    // Report physical address
+    unsigned char buf[4] = {0x84, (unsigned char) (physical_address_ >> 8), (unsigned char) (physical_address_ & 0xff),
+                            address_};
+    this->send_data_internal_(this->address_, 0xF, buf, 4);
   }
 }
 
