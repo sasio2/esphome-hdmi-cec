@@ -125,7 +125,7 @@ void HdmiCec::send_data_internal_(uint8_t source, uint8_t destination, unsigned 
   ESP_LOGD(TAG, "TX: (%d->%d) %02X:%s", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
            debug_message);
 
-  this->TransmitFrame(destination, buffer, count);
+  this->Transmit(source, destination, buffer, count);
 }
 
 void HdmiCec::add_trigger(HdmiCecTrigger *trigger) { this->triggers_.push_back(trigger); };
