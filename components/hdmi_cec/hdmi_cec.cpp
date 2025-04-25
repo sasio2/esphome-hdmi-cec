@@ -104,7 +104,7 @@ void HdmiCec::OnTransmitComplete(unsigned char *buffer, int count, bool ack) {
   char debug_message[HDMI_CEC_MAX_DATA_LENGTH * 3];
   message_to_debug_string(debug_message, buffer, count);
   ESP_LOGD(TAG, "ACK: (%d->%d) %02X:%s [%s]", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
-           debug_message, ack ? 'success' : 'fail');
+           debug_message, ack ? "success" : "fail");
 }
 
 void IRAM_ATTR HOT HdmiCec::pin_interrupt(HdmiCec *arg) {
