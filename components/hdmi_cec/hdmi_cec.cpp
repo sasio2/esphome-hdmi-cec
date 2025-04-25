@@ -78,6 +78,20 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
 }
 
 void HdmiCec::OnTransmitComplete(unsigned char *buffer, int count, bool ack) {
+  if (count < 2)
+    return;
+
+  auto source = (buffer[0] & 0xF0) >> 4;
+  auto destination = (buffer[0] & 0x0F);
+
+  // Pop the source/destination byte from buffer
+  buffer = &buffer[1];
+  count = count - 1;
+
+  char debug_message[HDMI_CEC_MAX_DATA_LENGTH * 3];
+  message_to_debug_string(debug_message, buffer, count);
+  ESP_LOGD(TAG, "ACK: (%d->%d) %02X:%s [%d]", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
+           debug_message, ack);
 }
 
 void IRAM_ATTR HOT HdmiCec::pin_interrupt(HdmiCec *arg) {
