@@ -107,7 +107,7 @@ async def to_code(config):
     cg.add_library(
         None,
         None,
-        "https://github.com/johnboiles/CEC.git#d4b642c90f48f4e46c2cb8c234ab6dd2e5aee7c5",
+        "https://github.com/sasio2/CEC.git",
     )
     cg.add(var.set_address([config[CONF_ADDRESS]]))
     cg.add(var.set_physical_address([config[CONF_PHYSICAL_ADDRESS]]))
