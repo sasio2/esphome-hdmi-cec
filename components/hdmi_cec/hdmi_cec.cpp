@@ -91,6 +91,8 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
 }
 
 void HdmiCec::OnTransmitComplete(unsigned char *buffer, int count, bool ack) {
+  return;
+  
   if (count < 2)
     return;
   
