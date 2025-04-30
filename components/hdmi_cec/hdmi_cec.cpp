@@ -44,7 +44,7 @@ void HdmiCec::OnReady(int logical_address) {
 
 void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
   // No command received?
-  if (count < 2)
+  if (count < 1)
     return;
 
   auto source = (buffer[0] & 0xF0) >> 4;
@@ -52,6 +52,11 @@ void HdmiCec::OnReceiveComplete(unsigned char *buffer, int count, bool ack) {
 
   // If we're not in promiscuous mode and the message isn't for us, ignore it.
   if (!this->promiscuous_mode_ && destination != this->address_ && destination != 0xF) {
+    return;
+  }
+
+  if (count == 1) {
+    ESP_LOGD(TAG, "RX PING: (%d->%d)", source, destination);
     return;
   }
 
@@ -98,13 +103,18 @@ void HdmiCec::OnTransmitComplete(unsigned char *buffer, int count, bool ack) {
   auto source = (buffer[0] & 0xF0) >> 4;
   auto destination = (buffer[0] & 0x0F);
 
+  if (count == 1) {
+    ESP_LOGD(TAG, "TX PING: (%d->%d)", source, destination);
+    return;
+  }
+
   // Pop the source/destination byte from buffer
   buffer = &buffer[1];
   count = count - 1;
 
   char debug_message[HDMI_CEC_MAX_DATA_LENGTH * 3];
   message_to_debug_string(debug_message, buffer, count);
-  ESP_LOGD(TAG, "ACK: (%d->%d) %02X:%s [%d]", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
+  ESP_LOGD(TAG, "TX: (%d->%d) %02X:%s [%d]", source, destination, ((source & 0x0f) << 4) | (destination & 0x0f),
            debug_message, ack);
 }
 
